@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-background: #07090a;
+  --color-foreground: #eef3f1;
+  --color-card: #101416;
+  --color-card-foreground: #eef3f1;
+  --color-popover: #12181a;
+  --color-popover-foreground: #eef3f1;
+  --color-primary: #3ee0c5;
+  --color-primary-foreground: #06201a;
+  --color-secondary: #171c1e;
+  --color-secondary-foreground: #eef3f1;
+  --color-muted: #171c1e;
+  --color-muted-foreground: #8b9692;
+  --color-accent: #3ee0c5;
+  --color-accent-foreground: #06201a;
+  --color-destructive: #f07167;
+  --color-destructive-foreground: #1a0808;
+  --color-border: #1e2628;
+  --color-input: #1e2628;
+  --color-ring: #3ee0c5;
+  --color-success: #5ee9a0;
+  --color-success-foreground: #052014;
+  --color-warn: #e8b86d;
+  --color-warn-foreground: #1a1206;
+  --color-surface: #101416;
+  --color-surface-2: #171c1e;
+  --color-ink: #07090a;
+  --color-fg-subtle: #5c6662;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius: 12px;
+
+  --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.07);
+  --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    min-height: 100dvh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-primary) 35%, transparent);
+    color: var(--color-foreground);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.stagger-in > * {
+  animation: fade-up 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-in > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-in > *:nth-child(2) {
+  animation-delay: 50ms;
+}
+.stagger-in > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+.stagger-in > *:nth-child(4) {
+  animation-delay: 150ms;
+}
+.stagger-in > *:nth-child(5) {
+  animation-delay: 200ms;
+}
+.stagger-in > *:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
