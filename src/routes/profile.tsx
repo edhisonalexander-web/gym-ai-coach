@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ function Profile() {
   const user = useCurrentUser();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
+  const initializedUserId = useRef<string | null>(null);
   const [form, setForm] = useState({
     displayName: "",
     age: 28,
@@ -42,7 +43,8 @@ function Profile() {
 
   useEffect(() => {
     const p = q.data;
-    if (!p) return;
+    if (!p || initializedUserId.current === p.userId) return;
+    initializedUserId.current = p.userId;
     setForm({
       displayName: p.displayName ?? user?.displayName ?? "",
       age: p.age ?? 28,
@@ -55,7 +57,7 @@ function Profile() {
       equipment: p.equipment,
       voiceCues: p.voiceCues,
     });
-  }, [q.data, user]);
+  }, [q.data, user?.displayName]);
 
   const save = useMutation({
     mutationFn: () => saveProfile({ data: form }),
