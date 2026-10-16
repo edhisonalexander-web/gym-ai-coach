@@ -1,0 +1,10 @@
+node_modules/
+.vercel/
+dist/
+*.log
+sentadilla-demo.gif
+curl-biceps-demo.gif
+android/local.properties
+android/.gradle/
+android/app/build/
+ios/App/DerivedData/

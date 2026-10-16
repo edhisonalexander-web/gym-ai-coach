@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as PremiumRouteImport } from './routes/premium'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as CoachIndexRouteImport } from './routes/coach.index'
@@ -65,6 +66,11 @@ const PremiumRoute = PremiumRouteImport.update({
   path: '/premium',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/coach/$slug': typeof CoachSlugRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/coach/$slug': typeof CoachSlugRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/coach/$slug': typeof CoachSlugRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/plan'
     | '/premium'
+    | '/privacy'
     | '/profile'
     | '/stats'
     | '/coach/$slug'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/plan'
     | '/premium'
+    | '/privacy'
     | '/profile'
     | '/stats'
     | '/coach/$slug'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/plan'
     | '/premium'
+    | '/privacy'
     | '/profile'
     | '/stats'
     | '/coach/$slug'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
   PremiumRoute: typeof PremiumRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   StatsRoute: typeof StatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -273,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/premium'
       fullPath: '/premium'
       preLoaderRoute: typeof PremiumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
   PremiumRoute: PremiumRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   StatsRoute: StatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { signOut } from "@/lib/auth/client";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { getProfile, saveProfile } from "@/lib/server/profile";
+import { deleteAccount } from "@/lib/server/account";
 import { EQUIPMENT, EXPERIENCE, GOALS } from "@/lib/server/types";
 import { initials } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ function Profile() {
     voiceCues: true,
   });
   const [signingOut, setSigningOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const p = q.data;
@@ -204,6 +206,29 @@ function Profile() {
       >
         {signingOut ? "Saliendo…" : "Cerrar sesión"}
       </Button>
+
+      <div className="mt-8 border-t border-border pt-6 text-center">
+        <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/privacy" className="underline underline-offset-4">Privacidad</Link>
+        </div>
+        <Button
+          variant="ghost"
+          className="mt-5 w-full text-destructive hover:text-destructive"
+          disabled={deleting}
+          onClick={() => {
+            if (!window.confirm("Esta acción eliminará tu perfil, historial y planes de forma permanente. ¿Continuar?")) return;
+            setDeleting(true);
+            void deleteAccount({ data: true })
+              .then(() => signOut("/"))
+              .catch(() => {
+                setDeleting(false);
+                toast.error("No se pudo eliminar la cuenta");
+              });
+          }}
+        >
+          {deleting ? "Eliminando…" : "Eliminar mi cuenta"}
+        </Button>
+      </div>
     </main>
   );
 }

@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import type { Exercise } from "@/lib/exercises/types";
 import { createDetector } from "@/lib/pose/detectors";
 import { demoPose } from "@/lib/pose/demo-skeleton";
-import { drawPose, drawStudioBackdrop } from "@/lib/pose/draw";
+import { drawInstructorAvatar, drawInstructorOverlay, drawPose, drawStudioBackdrop } from "@/lib/pose/draw";
 import { landmarksFromResult, loadPoseLandmarker } from "@/lib/pose/mediapipe";
 import type { DetectorOutput, Landmark } from "@/lib/pose/types";
 import { saveWorkout } from "@/lib/server/workouts";
@@ -16,6 +16,35 @@ import { formatDuration } from "@/lib/utils";
 type Mode = "idle" | "running" | "summary";
 type Source = "camera" | "demo";
 type Facing = "user" | "environment";
+
+function demoCue(slug: string, phase: string): string {
+  const cues: Record<string, { down: string; up: string; hold: string }> = {
+    sentadilla: { down: "Baja con todo el cuerpo", up: "Sube empujando el suelo", hold: "Pies firmes y pecho alto" },
+    "sentadilla-sumo": { down: "Baja entre las piernas", up: "Sube apretando glúteos", hold: "Rodillas hacia las puntas" },
+    flexiones: { down: "Baja el pecho en bloque", up: "Empuja el suelo", hold: "Cuerpo en línea" },
+    "flexiones-diamante": { down: "Baja con codos cerca", up: "Empuja con los tríceps", hold: "Manos juntas bajo el pecho" },
+    zancadas: { down: "Baja la rodilla trasera", up: "Empuja con el talón delantero", hold: "Torso erguido" },
+    plancha: { down: "Aprieta abdomen y glúteos", up: "Respira sin mover la cadera", hold: "Línea de hombros a pies" },
+    "curl-biceps": { down: "Baja lento y controla", up: "Flexiona sin mover los codos", hold: "Codos pegados al cuerpo" },
+    "press-militar": { down: "Baja hasta los hombros", up: "Empuja hacia arriba", hold: "Costillas abajo" },
+    "peso-muerto": { down: "Lleva la cadera atrás", up: "Aprieta glúteos al subir", hold: "Espalda larga" },
+    fondos: { down: "Baja con control", up: "Empuja con los brazos", hold: "Hombros lejos de las orejas" },
+    crunch: { down: "Acerca las costillas a la pelvis", up: "Vuelve sin tirar del cuello", hold: "Abdomen activo" },
+    "jumping-jacks": { down: "Abre brazos y piernas", up: "Cierra con suavidad", hold: "Aterriza suave" },
+    "mountain-climbers": { down: "Lleva una rodilla al pecho", up: "Vuelve a la plancha", hold: "Cadera estable" },
+    "elevacion-gemelos": { down: "Baja los talones", up: "Sube sobre las puntas", hold: "Sujétate con equilibrio" },
+    burpees: { down: "Baja y apoya las manos", up: "Salta y extiende el cuerpo", hold: "Muévete por etapas" },
+    "wall-sit": { down: "Desliza la espalda hacia abajo", up: "Mantén la espalda apoyada", hold: "Rodillas a noventa grados" },
+    "hip-thrust": { down: "Baja la cadera", up: "Empuja con los talones", hold: "Aprieta los glúteos arriba" },
+    "puente-gluteo": { down: "Baja la cadera", up: "Eleva la cadera", hold: "Costillas abajo" },
+    "sentadilla-bulgara": { down: "Baja en vertical", up: "Empuja con la pierna delantera", hold: "Rodilla alineada con el pie" },
+    "pike-push-up": { down: "Acerca la cabeza al suelo", up: "Empuja con los hombros", hold: "Cadera alta" },
+    "plancha-lateral": { down: "Baja sin perder la línea", up: "Eleva la cadera", hold: "Cadera arriba" },
+    "swing-mancuerna": { down: "Lleva la cadera atrás", up: "Impulsa con la cadera", hold: "Brazos relajados" },
+  };
+  const cue = cues[slug] ?? { down: "Baja con control", up: "Sube con control", hold: "Mantén la postura" };
+  return phase === "down" ? cue.down : phase === "up" ? cue.up : cue.hold;
+}
 
 export function CameraSession({
   exercise,
@@ -74,7 +103,6 @@ export function CameraSession({
 
   useEffect(() => {
     return () => stopAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function stopAll() {
@@ -176,7 +204,7 @@ export function CameraSession({
       let landmarks: Landmark[] | null = null;
       if (src === "demo") {
         drawStudioBackdrop(ctx, w, h);
-        landmarks = demoPose(exercise.detector, (now - startTs.current) / 1000);
+        landmarks = demoPose(exercise.detector, (now - startTs.current) / 1000, exercise.slug);
       } else if (video && video.readyState >= 2) {
         ctx.save();
         if (facingRef.current === "user") {
@@ -200,11 +228,24 @@ export function CameraSession({
         acc.current.n += 1;
         result.issues.forEach((i) => acc.current.issues.add(i.message));
         result.muscles.forEach((m) => acc.current.muscles.add(m));
-        drawPose(ctx, landmarks, {
-          w,
-          h,
-          mirror: src === "camera" && facingRef.current === "user",
-          warn: result.issues.some((i) => i.severity !== "info"),
+        const postureColor = result.formScore >= 85 ? "#5ee9a0" : result.formScore >= 65 ? "#e8b86d" : "#f07167";
+        if (src === "demo") {
+          drawInstructorAvatar(ctx, landmarks, w, h, { postureColor, fit: true });
+        } else {
+          drawPose(ctx, landmarks, {
+            w,
+            h,
+            mirror: facingRef.current === "user",
+            accent: postureColor,
+            warn: result.formScore < 65,
+          });
+        }
+        drawInstructorOverlay(ctx, w, h, {
+          phase: result.phase,
+          score: result.formScore,
+          ready: result.ready,
+          cue: src === "demo" ? demoCue(exercise.slug, result.phase) : result.issues[0]?.fix ?? result.cue,
+          demo: src === "demo",
         });
         if (now - lastUi > 120) {
           lastUi = now;
@@ -295,10 +336,14 @@ export function CameraSession({
           </div>
           <div className="stagger-in mx-auto mt-8 max-w-md flex-1">
             <p className="text-xs font-medium tracking-wide text-primary uppercase">Análisis en tiempo real</p>
-            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">
-              Coloca el teléfono y entra en el encuadre
-            </h1>
+            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">Mira cómo hacerlo y luego inténtalo</h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{exercise.summary}</p>
+            <div className="mt-5 rounded-xl bg-secondary/80 p-4 text-sm">
+              <p className="font-medium text-foreground">Para que el análisis funcione</p>
+              <p className="mt-1 leading-relaxed text-muted-foreground">
+                Apoya el teléfono a unos 2–3 metros. Tu cabeza, manos, cadera y pies deben verse completos durante todo el movimiento.
+              </p>
+            </div>
             <ul className="mt-6 space-y-3 text-sm">
               {exercise.setup.map((s) => (
                 <li key={s} className="flex gap-3">
@@ -316,16 +361,15 @@ export function CameraSession({
             <div className="mt-8 flex flex-col gap-3">
               <Button size="lg" onClick={() => void start("camera")} disabled={loading || !canStart}>
                 <Camera className="size-4" />
-                {loading ? "Preparando…" : "Abrir cámara"}
+                {loading ? "Preparando…" : "Abrir cámara y empezar"}
               </Button>
               <Button size="lg" variant="secondary" onClick={() => void start("demo")} disabled={loading || !canStart}>
                 <Sparkles className="size-4" />
-                Modo demostración
+                Ver demostración guiada
               </Button>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              La demostración anima un esqueleto y corre el mismo motor de repeticiones y técnica. Úsala si la
-              cámara no está disponible.
+              Primero puedes observar el movimiento completo: la cabeza, el torso, las rodillas y los pies se mueven juntos. Después prueba el ejercicio con tu cámara.
             </p>
           </div>
         </div>
